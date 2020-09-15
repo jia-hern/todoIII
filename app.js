@@ -48,7 +48,7 @@ todoRoutes.get("/", async (req, res) => {
   try {
     let todos = await Todo.find();
     // res.json(todos);
-    console.log("this is in the res", todos);
+    // console.log("this is in the res", todos);
     res.status(200).json(todos);
   } catch (error) {
     console.log(error);
@@ -97,6 +97,8 @@ todoRoutes.post("/add", async (req, res) => {
     let todo = new Todo(req.body);
     todo.save();
     if (todo) {
+      // console.log("This is in req of /add", req);
+      // console.log("This is in res /add", res);
       res.status(201).send("Todo was added successfully");
     }
   } catch (error) {

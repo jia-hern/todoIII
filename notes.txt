@@ -123,3 +123,34 @@ gets back Todo was deleted successfully -> it should no longer be there in the g
 
 .status and .send/.json
 https://stackoverflow.com/questions/26066785/proper-way-to-set-response-status-and-json-content-in-a-rest-api-made-with-nodej
+
+
+So now we need to connect the frontend to the backend (using axios calls)
+->go to running folder run npm i axios
+-> in App.js import axios from 'axios'
+-> then add the axios calls
+
+updated the todo model in node to match { text: "one", editing: false, edited: false }
+we can then test that the  
+axios
+	.post("http://localhost:3100/todos/add", newTodo)
+	.then((res) => console.log(res.data));
+in the handlesubmit -> verify with postman that the frontend can add a new todo to the backend
+
+we can use componentDidMount(){
+axios
+	.get('http://localhost:3100.todos/')
+	.then(res=>{this.setState({todos: res.data})
+	}).catch(function(error){
+		console.log(error)
+	})	
+}
+to load all the current todos we have stored in our database
+
+
+
+//done add, get, update, delete
+//left get one(get one not really needed in this case unless we want to show one todo on a single page)
+
+//need to make modifications to how new todos are created as when todos are created through mongoose they are given a _.id field, which when we first create on App.js itself, this field does not appear
+--> need to setState again after creating a new item

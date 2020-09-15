@@ -1,13 +1,14 @@
 import React, { Component } from "react";
 import "./App.css";
+import axios from "axios";
 
 class App extends Component {
   state = {
     // list: ["one", "two"],
     list: [
       // to save info in this format
-      { text: "one", editing: false, edited: false },
-      { text: "two", editing: false, edited: false },
+      // { todo_text: "one", editing: false, edited: false },
+      // { todo_text: "two", editing: false, edited: false },
       // ["one", false, false],
       // ["two", false, false],
     ],
@@ -27,8 +28,28 @@ class App extends Component {
     event.preventDefault();
     let temp = { ...this.state };
     // temp.list.push([this.state.textbox, false, false]);
-    temp.list.push({ text: this.state.textbox, editing: false, edited: false });
+    let newTodo = {
+      todo_text: this.state.textbox,
+      editing: false,
+      edited: false,
+    };
+    temp.list.push(newTodo);
     this.setState(temp);
+    //update the backend
+    axios
+      .post("http://localhost:3100/todos/add", newTodo)
+      .then((res) => console.log(res.data));
+    //update the frontend for the newly created item to have the ._id field
+    //alternatively we can just setState for the item that added so that it has the ._id field
+    axios
+      .get("http://localhost:3100/todos/")
+      .then((res) => {
+        this.setState({ list: res.data });
+        // console.log("This is in res.data", res.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
   };
   handleEdit = (id) => {
     //to prefill the editbox to have the previous info that was stored
@@ -50,7 +71,7 @@ class App extends Component {
     }
     //dk why the next line dont work
     // templist = templist.splice(id, 1, {
-    //   text: this.state.list[id].text,
+    //   todo_text: this.state.list[id].todo_text,
     //   editing: true,
     //   edited: true,
     // });
@@ -70,19 +91,56 @@ class App extends Component {
     // templist[id][2] = false;
     templist[id].edited = false;
     // templist[id][0] = this.state.editbox;
-    templist[id].text = this.state.editbox;
+    templist[id].todo_text = this.state.editbox;
     this.setState({ list: templist });
 
     // at position id, remove 1 item and put whats in editbox in its place
     // templist = templist.splice(id, 1, this.state.editbox);
     this.setState({ list: templist });
+    //update the backend so that db has updated info of the ameneded todo
+    //need to pass in the id so we use backticks
+    let identity = templist[id]._id;
+    axios
+      .post(`http://localhost:3100/todos/update/${identity}`, templist[id])
+      .then((res) => {
+        console.log("This is res.data from /update", res.data);
+      })
+      //same as:
+      // }).catch(function(error){
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   handleDelete = (id) => {
     let templist = [...this.state.list];
+
+    //update the backend
+    let identity = templist[id]._id;
+    axios
+      .delete(`http://localhost:3100/todos/${identity}`)
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    //shifted below the axios call or not cannot find id to assign ._id to the identity
     templist.splice(id, 1);
     this.setState({ list: templist });
   };
+  componentDidMount() {
+    //retrieve all the todos that is currently stored in the db
+    axios
+      .get("http://localhost:3100/todos/")
+      .then((res) => {
+        this.setState({ list: res.data });
+        // console.log("This is in res.data", res.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
   render() {
     console.log(this.state.list);
     return (
@@ -100,7 +158,7 @@ class App extends Component {
               />
             ) : (
               // item[0]
-              item.text
+              item.todo_text
             )}
             {/* hide delete button when editting to prevent accidental deletion during editing  */}
             {!item.editing && (
